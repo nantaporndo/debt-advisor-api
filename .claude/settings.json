@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sudo chown -R user:user /home/user/debt-advisor-api/app)"
+    ]
+  }
+}
