@@ -1,12 +1,15 @@
-from fuctools import lru_cache
+from functools import lru_cache
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     """Application settings."""
 
-    app_name: str = "My FastAPI Application"
+    app_name: str = "Debt Advisor API"
     debug: bool = False
-    database_url: str = "sqlite:///./test.db"
+    database_url: str
+    supabase_url: str
+    supabase_key: str
+    anthropic_api_key: str
 
     class Config:
         env_file = ".env"
