@@ -1,0 +1,98 @@
+# .github/workflows/ci-cd.yml  (debt-advisor-api)
+#
+# Flow:
+#   PR -> develop        : run `ci` only (lint, test, docker build check)
+#   merge/push -> develop: run `ci` again on the merged code -> if green, `deploy` to Cloud Run
+
+name: CI/CD
+
+on:
+  pull_request:
+    branches: [develop]
+  push:
+    branches: [develop]
+  workflow_dispatch: {}
+
+# PR runs: cancel older runs of the same PR when new commits are pushed.
+# Deploy runs: never cancel mid-deploy, queue instead.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  REGION: asia-southeast3                # Cloud Run + Artifact Registry region
+  SERVICE: debt-management-api           # Cloud Run service name
+  AR_REPO: cloud-run-source-deploy       # Artifact Registry repository name
+
+jobs:
+  ci:
+    name: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install dependencies (exact versions from uv.lock)
+        run: uv sync --frozen
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Test
+        # pytest exits with code 5 when no tests are collected; allow that until tests exist
+        run: uv run pytest || [ $? -eq 5 ]
+
+      - name: Verify Docker image builds
+        run: docker build -t ci-check .
+
+  deploy:
+    name: deploy
+    needs: ci
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    environment: develop
+    permissions:
+      contents: read
+      id-token: write              # required for Workload Identity Federation (keyless auth)
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to GCP (OIDC, no JSON key)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOYER_SA }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${REGION}-docker.pkg.dev --quiet
+
+      - name: Build and push image (tagged with commit SHA)
+        run: |
+          IMAGE_URI="${REGION}-docker.pkg.dev/${PROJECT_ID}/${AR_REPO}/${SERVICE}:${GITHUB_SHA}"
+          docker build -t "$IMAGE_URI" .
+          docker push "$IMAGE_URI"
+          echo "IMAGE_URI=$IMAGE_URI" >> "$GITHUB_ENV"
+
+      - name: Deploy to Cloud Run
+        # Only --image is changed. Env vars, secrets, port, auth settings
+        # are inherited from the current revision, so nothing set in the console is lost.
+        run: |
+          gcloud run deploy "$SERVICE" \
+            --image "$IMAGE_URI" \
+            --region "$REGION" \
+            --quiet
+
+      - name: Smoke test
+        # Change /docs to /health once that endpoint exists
+        run: |
+          URL=$(gcloud run services describe "$SERVICE" --region "$REGION" --format='value(status.url)')
+          curl -fsS --retry 3 --retry-delay 5 "$URL/docs" > /dev/null
+          echo "Deployed: $URL"
