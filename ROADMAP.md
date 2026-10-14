@@ -2,8 +2,9 @@
 
 ## Phase 1 — Foundation (Do First)
 - [x] Fix typo in `app/core/config.py` (`fuctools` → `functools`)
-- [ ] Update `Settings` with real env vars (`DATABASE_URL`, `ANTHROPIC_API_KEY`, `SUPABASE_URL`, `SUPABASE_KEY`)
-- [ ] Connect Supabase Postgres via SQLModel
+- [x] Update `Settings` with real env vars (`DATABASE_URL`, `ANTHROPIC_API_KEY`, `SUPABASE_URL`, `SUPABASE_KEY`)
+- [x] Connect Supabase Postgres via SQLModel
+- [x] Connect Supabase Postgres via SQLModel
 - [ ] Run Alembic migrations for `User`, `Debt`, `Payment`, `Conversation`, `Message` tables
 - [ ] Mount `app/api/router.py` in `main.py`
 
