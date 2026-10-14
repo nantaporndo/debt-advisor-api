@@ -1,8 +1,12 @@
 from functools import lru_cache
-from pydantic_settings import BaseSettings
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
 
 class Settings(BaseSettings):
     """Application settings."""
+
+    model_config = SettingsConfigDict(env_file=".env")
 
     app_name: str = "Debt Advisor API"
     debug: bool = False
@@ -11,8 +15,6 @@ class Settings(BaseSettings):
     supabase_key: str
     anthropic_api_key: str
 
-    class Config:
-        env_file = ".env"
 
 @lru_cache
 def get_settings() -> Settings:

@@ -1,11 +1,9 @@
 from datetime import date, datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field
-
 
 # --- Base Response ---
 # A generic wrapper you can use for any endpoint that just returns
@@ -13,7 +11,7 @@ from pydantic import BaseModel, Field
 
 class BaseResponse(BaseModel):
     success: bool
-    message: Optional[str] = None
+    message: str | None = None
 
 
 # --- Enums ---
@@ -44,7 +42,7 @@ class DebtBase(BaseModel):
     current_balance: Decimal = Field(ge=0, description="Remaining balance owed")
     interest_rate: float = Field(ge=0, le=100, description="Annual interest rate in percent")
     minimum_payment: Decimal = Field(ge=0, description="Minimum monthly payment")
-    due_date: Optional[int] = Field(None, ge=1, le=31, description="Day of month payment is due")
+    due_date: int | None = Field(None, ge=1, le=31, description="Day of month payment is due")
 
 
 class DebtCreate(DebtBase):
@@ -55,11 +53,11 @@ class DebtCreate(DebtBase):
 
 class DebtUpdate(BaseModel):
     # All fields are Optional so the client only sends what changed (PATCH).
-    name: Optional[str] = None
-    current_balance: Optional[Decimal] = None
-    interest_rate: Optional[float] = None
-    minimum_payment: Optional[Decimal] = None
-    due_date: Optional[int] = None
+    name: str | None = None
+    current_balance: Decimal | None = None
+    interest_rate: float | None = None
+    minimum_payment: Decimal | None = None
+    due_date: int | None = None
 
 
 class DebtRead(DebtBase):
@@ -77,7 +75,7 @@ class DebtRead(DebtBase):
 class PaymentBase(BaseModel):
     amount: Decimal = Field(gt=0)
     payment_date: date
-    notes: Optional[str] = None
+    notes: str | None = None
 
 
 class PaymentCreate(PaymentBase):
@@ -96,13 +94,13 @@ class PaymentRead(PaymentBase):
 
 class ChatRequest(BaseModel):
     message: str                                 # the user's question to Claude
-    conversation_id: Optional[UUID] = None       # None = start a new conversation
+    conversation_id: UUID | None = None       # None = start a new conversation
 
 
 class ChatResponse(BaseModel):
     conversation_id: UUID
     message: str                                 # Claude's reply
-    suggestions: Optional[list[str]] = None      # optional follow-up action tips
+    suggestions: list[str] | None = None      # optional follow-up action tips
 
 
 class MessageRead(BaseModel):
@@ -125,5 +123,5 @@ class DebtSummary(BaseModel):
     total_debt: Decimal
     total_minimum_payment: Decimal
     debts: list[DebtRead]
-    highest_interest_debt: Optional[DebtRead] = None
-    estimated_payoff_months: Optional[int] = None
+    highest_interest_debt: DebtRead | None = None
+    estimated_payoff_months: int | None = None
