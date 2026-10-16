@@ -5,7 +5,7 @@ FastAPI backend for the Debt Advisor app.
 ## Running locally
 
 ```bash
-uv run uvicorn main:app --reload
+uv run uvicorn app.main:app --reload
 ```
 
 API will be available at http://localhost:8000.
