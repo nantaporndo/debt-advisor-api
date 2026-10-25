@@ -1,3 +1,3 @@
 from fastapi import APIRouter
 
-router = APIRouter(prefix="/debts",tags=["debts"])
+router = APIRouter(prefix="/debts", tags=["debts"])
