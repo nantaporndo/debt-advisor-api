@@ -46,7 +46,7 @@ jobs:
 
       - name: Test
         # pytest exits with code 5 when no tests are collected; allow that until tests exist
-        run: uv run pytest || [ $? -eq 5 ]
+        run: uv run pytest
 
       - name: Verify Docker image builds
         run: docker build -t ci-check .
@@ -94,5 +94,9 @@ jobs:
         # Change /docs to /health once that endpoint exists
         run: |
           URL=$(gcloud run services describe "$SERVICE" --region "$REGION" --format='value(status.url)')
-          curl -fsS --retry 3 --retry-delay 5 "$URL/docs" > /dev/null
-          echo "Deployed: $URL"
+          for i in 1 2 3 4 5; do
+            VERSION=$(curl -fsS "$URL/health" | jq -r .version) || VERSION=""
+            if [ "$VERSION" = "$GITHUB_SHA" ]; then echo "✅ $VERSION"; exit 0; fi
+            echo "attempt $i: got '$VERSION'"; sleep 5
+          done
+          echo "❌ expected $GITHUB_SHA"; exit 1
