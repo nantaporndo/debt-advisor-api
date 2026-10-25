@@ -6,7 +6,7 @@
 - [x] Connect Supabase Postgres via SQLModel
 - [x] Connect Supabase Postgres via SQLModel
 - [ ] Run Alembic migrations for `User`, `Debt`, `Payment`, `Conversation`, `Message` tables
-- [ ] Mount `app/api/router.py` in `main.py`
+- [ ] Mount `app/api/router.py` in `app/main.py`
 
 ## Phase 2 — Core API
 - [ ] `POST /debts` — create a debt

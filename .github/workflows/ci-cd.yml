@@ -77,7 +77,7 @@ jobs:
       - name: Build and push image (tagged with commit SHA)
         run: |
           IMAGE_URI="${REGION}-docker.pkg.dev/${PROJECT_ID}/${AR_REPO}/${SERVICE}:${GITHUB_SHA}"
-          docker build -t "$IMAGE_URI" .
+          docker build --build-arg GIT_SHA="$GITHUB_SHA" -t "$IMAGE_URI" .
           docker push "$IMAGE_URI"
           echo "IMAGE_URI=$IMAGE_URI" >> "$GITHUB_ENV"
 
