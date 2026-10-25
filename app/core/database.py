@@ -1,16 +1,20 @@
+from collections.abc import Iterator
+from functools import lru_cache
+
+from sqlalchemy import Engine
 from sqlmodel import Session, SQLModel, create_engine
 
 from app.core.config import get_settings
 
-settings = get_settings()
 
-engine = create_engine(settings.database_url.get_secret_value())
+@lru_cache
+def get_engine() -> Engine:
+    """Create the engine on first use, not at import time."""
+    return create_engine(get_settings().database_url.get_secret_value())
 
-
-def init_db():
+def init_db(engine: Engine) -> None:
     SQLModel.metadata.create_all(engine)
 
-
-def get_session():
-    with Session(engine) as session:
+def get_session()-> Iterator[Session]:
+    with Session(get_engine()) as session:
         yield session
