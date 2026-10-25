@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 # A generic wrapper you can use for any endpoint that just returns
 # a success/fail status with an optional message.
 
+
 class BaseResponse(BaseModel):
     success: bool
     message: str | None = None
@@ -17,6 +18,7 @@ class BaseResponse(BaseModel):
 # --- Enums ---
 # Restricts a field to a fixed set of allowed string values.
 # Inheriting from `str` keeps it JSON-serializable.
+
 
 class DebtType(str, Enum):
     credit_card = "credit_card"
@@ -35,14 +37,19 @@ class DebtType(str, Enum):
 #   Update: what the client sends to partially UPDATE a record (all optional)
 #   Read:   what the API returns (includes server-generated fields like id, timestamps)
 
+
 class DebtBase(BaseModel):
     name: str
     debt_type: DebtType
     principal_amount: Decimal = Field(gt=0, description="Original loan amount")
     current_balance: Decimal = Field(ge=0, description="Remaining balance owed")
-    interest_rate: float = Field(ge=0, le=100, description="Annual interest rate in percent")
+    interest_rate: float = Field(
+        ge=0, le=100, description="Annual interest rate in percent"
+    )
     minimum_payment: Decimal = Field(ge=0, description="Minimum monthly payment")
-    due_date: int | None = Field(None, ge=1, le=31, description="Day of month payment is due")
+    due_date: int | None = Field(
+        None, ge=1, le=31, description="Day of month payment is due"
+    )
 
 
 class DebtCreate(DebtBase):
@@ -67,10 +74,13 @@ class DebtRead(DebtBase):
     created_at: datetime
     updated_at: datetime
 
-    model_config = {"from_attributes": True}  # lets Pydantic read from SQLModel ORM objects
+    model_config = {
+        "from_attributes": True
+    }  # lets Pydantic read from SQLModel ORM objects
 
 
 # --- Payment Schemas ---
+
 
 class PaymentBase(BaseModel):
     amount: Decimal = Field(gt=0)
@@ -92,19 +102,20 @@ class PaymentRead(PaymentBase):
 
 # --- AI Advisor Chat Schemas ---
 
+
 class ChatRequest(BaseModel):
-    message: str                                 # the user's question to Claude
-    conversation_id: UUID | None = None       # None = start a new conversation
+    message: str  # the user's question to Claude
+    conversation_id: UUID | None = None  # None = start a new conversation
 
 
 class ChatResponse(BaseModel):
     conversation_id: UUID
-    message: str                                 # Claude's reply
-    suggestions: list[str] | None = None      # optional follow-up action tips
+    message: str  # Claude's reply
+    suggestions: list[str] | None = None  # optional follow-up action tips
 
 
 class MessageRead(BaseModel):
-    role: str       # "user" or "assistant"
+    role: str  # "user" or "assistant"
     content: str
     created_at: datetime
 
@@ -112,6 +123,7 @@ class MessageRead(BaseModel):
 
 
 # --- User / Summary Schemas ---
+
 
 class UserRead(BaseModel):
     id: UUID
