@@ -1,3 +1,10 @@
+![CI/CD](https://github.com/nantaporndo/debt-advisor-api/actions/workflows/ci-cd.yml/badge.svg?branch=develop)
+
+## CI/CD
+PR → develop: `ci` (ruff, pytest, docker build) — required to merge
+merge → develop: `ci` → `deploy` (WIF auth → build image tagged with SHA → Cloud Run) → smoke test (`/health` version == SHA)
+Secrets: GCP Secret Manager, mounted as env by Cloud Run
+
 # debt-advisor-api
 
 FastAPI backend for the Debt Advisor app.

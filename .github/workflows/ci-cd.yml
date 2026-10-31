@@ -45,7 +45,6 @@ jobs:
         run: uv run ruff check .
 
       - name: Test
-        # pytest exits with code 5 when no tests are collected; allow that until tests exist
         run: uv run pytest
 
       - name: Verify Docker image builds
@@ -91,7 +90,6 @@ jobs:
             --quiet
 
       - name: Smoke test
-        # Change /docs to /health once that endpoint exists
         run: |
           URL=$(gcloud run services describe "$SERVICE" --region "$REGION" --format='value(status.url)')
           for i in 1 2 3 4 5; do
